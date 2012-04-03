@@ -58,8 +58,25 @@
 			$GLOBALS['smarty']->assign('pagination', $rsp['pagination']);
 			$GLOBALS['smarty']->register_function('pagination', 'smarty_function_pagination');
 		}
-		
+	
 		return $rsp;
+	}
+
+	#################################################################
+
+	# See also: db_single()
+
+	function solr_single($rsp){
+
+		if (! $rsp['ok']){
+			return null;
+		}
+
+		if (! count($rsp['rows'])){
+			return null;
+		}
+
+		return $rsp['rows'][0];
 	}
 
 	#################################################################
