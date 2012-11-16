@@ -52,7 +52,7 @@
 			)
 		);
 
- 		# TO DO: put this someplace common (like not here or lib_db)
+		# TO DO: put this someplace common (like not here or lib_db)
 
 		if ($GLOBALS['cfg']['pagination_assign_smarty_variable']) {
 			$GLOBALS['smarty']->assign('pagination', $rsp['pagination']);

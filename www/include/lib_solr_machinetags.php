@@ -2,12 +2,34 @@
 
 	#################################################################
 
-	# http://www.aaronland.info/talks/mw10_machinetags/#105
+	function solr_machinetags_prepare_for_path_hierarchy_field($mt, $more=array()){
 
-	function solr_machinetags_explode($mt, $add_lazy8s=1){
+		$defaults = array(
+			'add_lazy_8s' => 1,
+		);
 
-		list($ns, $rest) = explode(":", $mt, 2);
-		list($pred, $value) = explode("=", $rest, 2);
+		$more = array_merge($defaults, $more);
+
+		$parts = solr_machinetags_explode($mt);
+
+		if ($more['add_lazy_8s']){
+			$parts = solr_machinetags_lazy8ify_list($parts);
+		}
+
+		return implode("/", $parts);
+	}
+
+	#################################################################
+
+	function solr_machinetags_prepare_for_multivalue_field($mt, $more=array()){
+
+		$defaults = array(
+			'add_lazy_8s' => 1,
+		);
+
+		$more = array_merge($defaults, $more);
+
+		list($ns, $pred, $value) = solr_machinetags_explode($mt);
 
 		$parts = array(
 			"{$ns}:",
@@ -18,16 +40,34 @@
 			":{$pred}={$value}",
 		);
 
-		if ($add_lazy8s){
-
-			$count = count($parts);
-
-			for ($i=0; $i < $count; $i++){
-				$parts[$i] = solr_machinetags_add_lazy8s($parts[$i]);
-			}
+		if ($more['add_lazy_8s']){
+			$parts = solr_machinetags_lazy8ify_list($parts);
 		}
 
 		return $parts;
+	}
+
+	#################################################################
+
+	function solr_machinetags_explode($mt, $more=array()){
+
+		list($ns, $rest) = explode(":", $mt, 2);
+		list($pred, $value) = explode("=", $rest, 2);
+
+		return array($ns, $pred, $value);
+	}
+
+	#################################################################
+
+	function solr_machinetags_lazy8ify_list(&$parts){
+
+		$enc_parts = array();
+
+		foreach ($parts as $str){
+			$enc_stuff[] = solr_machinetags_add_lazy8s($str);
+		}
+
+		return $enc_stuff;
 	}
 
 	#################################################################
