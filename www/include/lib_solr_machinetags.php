@@ -128,7 +128,7 @@
 			$k[] = solr_machinetags_add_lazy8s($pred);
 		}
 
-		$k = (count($k)) ? implode("/", array($k)) : '';
+		$k = (count($k)) ? implode("/", $k) : '';
 
 		$v = ($v == '*') ? solr_machinetags_add_lazy8s($value) : '';
 
