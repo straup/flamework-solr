@@ -92,4 +92,72 @@
 
 	#################################################################
 
+	function solr_machinetags_inflate_for_path_hierarchy($mt){
+
+		$parts = array();
+
+		foreach (explode("/", $mt, 3) as $str){
+			$parts[] = solr_machinetags_remove_lazy8s($str);
+		}
+
+		return "{$parts[0]}:{$parts[1]}={$parts[2]}";
+	}
+
+	#################################################################
+
+	# Adapted from the building=yes codebase
+	# (20121116/straup)
+
+	# things to test with:
+	# http://buildingequalsyes.spum.org/tags/gnis:feature_id=2461281
+	# http://buildingequalsyes.spum.org/tags/name=Valley%20View%20Library
+	# http://buildingequalsyes.spum.org/tags/horse=yes
+	# http://buildingequalsyes.spum.org/tags/ele=114 <-- borked, possible to make work w/ literal fq?
+
+	function solr_machinetags_query_for_path_hierarchy($mt, $field, $more=array()){
+
+		list($ns, $pred, $value) = solr_machinetags_explode($mt);
+
+		$k = implode("/", array(
+			solr_machinetags_add_lazy8s($ns),
+			solr_machinetags_add_lazy8s($pred),
+		));
+
+		$v = solr_machinetags_add_lazy8s($value);
+
+		$query = array();
+
+		$query[] = "{$field}:{$k}/*";
+
+		$values = ($value) ? explode(" ", $value) : array();
+		$count = count($values);
+
+		for ($i=0; $i < $count; $i++){
+
+			$v = solr_machinetags_add_lazy8s($values[$i]);
+
+			if ($count == 1){
+				$q = "{$field}:*/{$v}";
+			}
+
+			else if ($i == 0){
+				$q = "{$field}:{$k}/{$v}*";
+			}
+
+			else if ($i == ($count-1)){
+				$q = "{$field}:{$k}/*{$v}";
+			}
+
+			else {
+				$q = "{$field}:{$k}/*{$v}*";
+			}
+
+			$query[] = $q;
+		}
+
+		$q = implode(" AND ", $query);
+		return $q;
+	}
+
+	#################################################################
 ?>

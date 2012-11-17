@@ -16,6 +16,10 @@
 	# Note: this doesn't do any magic with 'q' query parameters yet
 	# so you'll need to do that before you get here
 
+	# TO DO: figure out what to make of "real-time GETs"
+	# https://wiki.apache.org/solr/RealTimeGet
+	# (20121116/straup)
+
 	function solr_select($params, $more=array()){
 
 		# defaults (to do: spill)
@@ -200,41 +204,64 @@
 
 	function solr_add($docs, $more=array()){
 
-		$endpoint = (isset($more['solr_endpoint'])) ? $more['solr_endpoint'] : $GLOBALS['cfg']['solr_endpoint'];
-
-		$url = "{$endpoint}update/json";
-
-		$params = array(
-			'commit' => 'true',
-			'wt' => 'json',
-		);
-
-		$str_params = http_build_query($params);
-		$url = implode("?", array($url, $str_params));
-
-		$body = json_encode($docs);
-
-		$headers = array(
-			'Content-type' => 'application/json',
-		);
-
-		$http_rsp = http_post($url, $body, $headers);
-
-		$rsp = _solr_parse_response($http_rsp);
-		return $rsp;
+		return _solr_update($docs, $more);
 	}
 
 	#################################################################
 
-	# TO DO: solr_update (this is more complicated than it seems...)
+	# Note: this only works if you have a unique ID field
+	# (2012116/straup)
+
+	# https://wiki.apache.org/solr/Atomic_Updates
+	# https://wiki.apache.org/solr/UpdateJSON#Solr_4.0_Example
+	# http://yonik.com/solr/atomic-updates/
+
+	function solr_atomic_update($docs, $more=array()){
+		return _solr_update($docs, $more);
+	}
 
 	#################################################################
 
 	function solr_delete($what, $more=array()){
 
-		$endpoint = (isset($more['solr_endpoint'])) ? $more['solr_endpoint'] : $GLOBALS['cfg']['solr_endpoint'];
+		$update = array(
+			'delete' => $what
+		);
 
-		$url = "{$endpoint}update/json";
+		return _solr_update($update, $more);
+	}
+
+	#################################################################
+
+	# THERE IS NO UNDO (20121116/straup)
+
+	function solr_purge(){
+
+		$update = array(
+			'query' => '*:*'
+		);
+
+		return solr_delete($update);
+	}
+
+	#################################################################
+
+	function _solr_update($update, $more=array()){
+
+		$defaults = array(
+			'solr_endpoint' => $GLOBALS['cfg']['solr_endpoint'],
+			'is_solr4' => 1
+		);
+
+		$more = array_merge($defaults, $more);
+
+		$endpoint = $more['solr_endpoint'];
+
+		$url = "{$endpoint}update";
+
+		if (! $more['is_solr4']){
+			$url .= "/json";
+		}
 
 		$params = array(
 			'commit' => 'true',
@@ -244,9 +271,7 @@
 		$str_params = http_build_query($params);
 		$url = implode("?", array($url, $str_params));
 
-		$body = json_encode(array(
-			'delete' => $what
-		));
+		$body = json_encode($update);
 
 		$headers = array(
 			'Content-type' => 'application/json',
