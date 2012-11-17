@@ -230,9 +230,32 @@
 
 	#################################################################
 
-	function solr_delete(){
+	function solr_delete($what, $more=array()){
 
-		# please write me
+		$endpoint = (isset($more['solr_endpoint'])) ? $more['solr_endpoint'] : $GLOBALS['cfg']['solr_endpoint'];
+
+		$url = "{$endpoint}update/json";
+
+		$params = array(
+			'commit' => 'true',
+			'wt' => 'json',
+		);
+
+		$str_params = http_build_query($params);
+		$url = implode("?", array($url, $str_params));
+
+		$body = json_encode(array(
+			'delete' => $what
+		));
+
+		$headers = array(
+			'Content-type' => 'application/json',
+		);
+
+		$http_rsp = http_post($url, $body, $headers);
+
+		$rsp = _solr_parse_response($http_rsp);
+		return $rsp;
 	}
 
 	#################################################################
