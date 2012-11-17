@@ -105,8 +105,8 @@
 
 	#################################################################
 
-	# Adapted from the building=yes codebase
-	# (20121116/straup)
+	# Adapted from the building=yes codebase – THIS SHOULD BE CONSIDERED
+	# FLAKEY AND NEEDS MORE TESTS, ESPECIALLY FOR WILDCARDS (20121116/straup)
 
 	# things to test with:
 	# http://buildingequalsyes.spum.org/tags/gnis:feature_id=2461281
@@ -118,16 +118,25 @@
 
 		list($ns, $pred, $value) = solr_machinetags_explode($mt);
 
-		$k = implode("/", array(
-			solr_machinetags_add_lazy8s($ns),
-			solr_machinetags_add_lazy8s($pred),
-		));
+		$k = array();
 
-		$v = solr_machinetags_add_lazy8s($value);
+		if ($ns != '*'){
+			$k[] = solr_machinetags_add_lazy8s($ns);
+		}
+
+		if ($pred != '*'){
+			$k[] = solr_machinetags_add_lazy8s($pred);
+		}
+
+		$k = (count($k)) ? implode("/", array($k)) : '';
+
+		$v = ($v == '*') ? solr_machinetags_add_lazy8s($value) : '';
 
 		$query = array();
 
-		$query[] = "{$field}:{$k}/*";
+		if ($k){
+			$query[] = "{$field}:{$k}/*";
+		}
 
 		$values = ($value) ? explode(" ", $value) : array();
 		$count = count($values);

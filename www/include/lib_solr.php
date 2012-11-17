@@ -215,6 +215,7 @@
 	# https://wiki.apache.org/solr/Atomic_Updates
 	# https://wiki.apache.org/solr/UpdateJSON#Solr_4.0_Example
 	# http://yonik.com/solr/atomic-updates/
+	# http://yonik.com/solr/optimistic-concurrency/
 
 	function solr_atomic_update($docs, $more=array()){
 		return _solr_update($docs, $more);
@@ -289,7 +290,14 @@
 
 	function _solr_select($params, $more=array()){
 
-		$endpoint = (isset($more['solr_endpoint'])) ? $more['solr_endpoint'] : $GLOBALS['cfg']['solr_endpoint'];
+		$defaults = array(
+			'solr_endpoint' => $GLOBALS['cfg']['solr_endpoint'],
+			'is_solr4' => 1
+		);
+
+		$more = array_merge($defaults, $more);
+
+		$endpoint = $more['solr_endpoint'];
 
 		$url = "{$endpoint}select/";
 
