@@ -16,6 +16,8 @@
 	# Note: this doesn't do any magic with 'q' query parameters yet
 	# so you'll need to do that before you get here
 
+	# See also: lib_solr_query:solr_query_parse()
+
 	# TO DO: figure out what to make of "real-time GETs"
 	# https://wiki.apache.org/solr/RealTimeGet
 	# (20121116/straup)
@@ -251,7 +253,7 @@
 
 		$defaults = array(
 			'solr_endpoint' => $GLOBALS['cfg']['solr_endpoint'],
-			'is_solr4' => 1
+			'is_solr4' => 1,
 		);
 
 		$more = array_merge($defaults, $more);
@@ -265,9 +267,20 @@
 		}
 
 		$params = array(
-			'commit' => 'true',
 			'wt' => 'json',
 		);
+
+		$commit_flags = array(
+			'commit',
+			'commitWithin',
+		);
+
+		foreach ($commit_flags as $flag){
+
+			if (isset($more[$flag])){
+				$params[$flag] = $more[$flag];
+			}
+		}
 
 		$str_params = http_build_query($params);
 		$url = implode("?", array($url, $str_params));
