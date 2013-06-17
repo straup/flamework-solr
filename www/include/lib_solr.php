@@ -319,6 +319,8 @@
 		$str_params = _solr_build_query($params, "stringify");
 
 		$http_rsp = http_post($url, $str_params);
+		log_notice('solr', "SOLR-{$endpoint}?" . urldecode($str_params), $http_rsp['info']['total_time']);
+
 		return _solr_parse_response($http_rsp);
 	}
 
